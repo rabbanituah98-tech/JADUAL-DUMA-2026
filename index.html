@@ -46,7 +46,8 @@ h1,h2,h3,p{margin:0}
 .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
 
 /* ---------- Sidebar ---------- */
-.sisi{position:fixed; inset:0 auto 0 0; width:272px; z-index:50; display:flex; flex-direction:column; gap:16px;
+html.kunci{overflow:hidden}
+.sisi{position:fixed; inset:0 auto 0 0; width:272px; z-index:50; display:flex; flex-direction:column; gap:16px; overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
   background:var(--papan); color:var(--papan-ink); padding:20px 16px 14px; overflow-y:auto}
 .sisi-kepala{padding:0 8px}
 .profil{display:flex; align-items:center; gap:12px; margin-bottom:12px}
@@ -82,7 +83,7 @@ h1,h2,h3,p{margin:0}
 .sisi-notif:hover{background:rgba(255,255,255,.07)}
 .sisi-notif .titik{width:9px; height:9px; border-radius:50%; background:var(--papan-muted); flex:none}
 .sisi-notif.hidup .titik{background:#6BE39B; box-shadow:0 0 0 4px rgba(107,227,155,.2)}
-.tabir{position:fixed; inset:0; background:rgba(8,16,14,.55); z-index:45; opacity:0; pointer-events:none; transition:opacity .2s}
+.tabir{position:fixed; inset:0; background:rgba(8,16,14,.55); z-index:45; opacity:0; pointer-events:none; transition:opacity .2s; touch-action:none}
 
 /* ---------- Main ---------- */
 .utama{margin-left:272px; padding:0 34px 64px}
@@ -99,7 +100,7 @@ h1,h2,h3,p{margin:0}
 [data-tema="gelap"] .ik-matahari{display:none}
 
 /* Panel loceng */
-.panel-loceng{position:fixed; top:74px; right:34px; width:min(380px,calc(100vw - 24px)); max-height:min(70vh,560px); overflow:auto; z-index:60;
+.panel-loceng{position:fixed; top:74px; right:34px; width:min(380px,calc(100vw - 24px)); max-height:min(70vh,560px); overflow:auto; overscroll-behavior:contain; z-index:60;
   background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:var(--bayang); padding:16px}
 .panel-loceng h2{font-size:1.05rem; font-weight:650; margin-bottom:2px}
 .panel-loceng .kecil{font-size:.85rem; color:var(--muted); margin-bottom:10px}
@@ -932,8 +933,9 @@ function setPandang(v, senyap){
   if(!senyap){ try{history.replaceState(null,'','#'+v);}catch(e){} window.scrollTo(0,0); }
   if(v==='minggu') skrolKeKini();
 }
-function bukaMenu(){ $('#app').classList.add('buka'); $('#btnMenu').setAttribute('aria-expanded','true'); }
-function tutupMenu(){ $('#app').classList.remove('buka'); $('#btnMenu').setAttribute('aria-expanded','false'); }
+function bukaMenu(){ $('#app').classList.add('buka'); $('#btnMenu').setAttribute('aria-expanded','true'); if(window.innerWidth<=980) document.documentElement.classList.add('kunci'); }
+function tutupMenu(){ $('#app').classList.remove('buka'); $('#btnMenu').setAttribute('aria-expanded','false'); document.documentElement.classList.remove('kunci'); }
+window.addEventListener('resize',function(){ if(window.innerWidth>980 && $('#app').classList.contains('buka')) tutupMenu(); });
 
 /* ---------- Jam & status ---------- */
 function digit(str){ return str.split('').map(function(c){return c===':'?'<span class="t">:</span>':'<span class="d">'+c+'</span>';}).join(''); }
@@ -1633,6 +1635,15 @@ window.addEventListener('afterprint',function(){ butiranDibuka.forEach(function(
   document.addEventListener('touchmove',function(e){ if(e.touches.length===1) nilai(e.touches[0]); else hidup=false; },{passive:true});
   document.addEventListener('touchend',function(e){ if(e.changedTouches.length) nilai(e.changedTouches[0]); hidup=false; },{passive:true});
   document.addEventListener('touchcancel',function(){ hidup=false; },{passive:true});
+  // Semasa menu terbuka: tatal hanya dalam sidebar, jangan gerakkan halaman di belakangnya
+  document.addEventListener('touchmove',function(e){
+    if(e.touches.length!==1 || !$('#app').classList.contains('buka')) return;
+    var sisi=$('#sisi');
+    if(!sisi.contains(e.target)){ if(e.cancelable) e.preventDefault(); return; }
+    var dy=e.touches[0].clientY-sy, bolehTatal=sisi.scrollHeight>sisi.clientHeight+1;
+    var diAtas=sisi.scrollTop<=0, diBawah=sisi.scrollTop+sisi.clientHeight>=sisi.scrollHeight-1;
+    if(!bolehTatal || (dy>0 && diAtas) || (dy<0 && diBawah)){ if(e.cancelable) e.preventDefault(); }
+  },{passive:false});
 })();
 
 /* ---------- Borang: pilihan ---------- */
