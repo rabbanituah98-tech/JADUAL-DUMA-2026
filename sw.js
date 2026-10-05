@@ -1,5 +1,5 @@
 /* Service worker Jadual Waktu: notifikasi pada telefon + bukaan luar talian */
-var CACHE = 'jadual-waktu-v3';
+var CACHE = 'jadual-waktu-v4';
 self.addEventListener('install', function () { self.skipWaiting(); });
 self.addEventListener('activate', function (e) { e.waitUntil(self.clients.claim()); });
 self.addEventListener('fetch', function (e) {
